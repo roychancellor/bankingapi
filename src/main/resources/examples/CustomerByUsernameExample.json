@@ -1,0 +1,10 @@
+{
+		"custId": 1,
+	    "firstName": "Max",
+	    "lastName": "Mule",
+	    "phoneNumber": "1234567890",
+	    "emailAddress": "maxmule@mulesoft.com",
+	    "userName": "maxmule",
+	    "hashedPassword": "KzhyBhLJ7NKBtpWEF/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslpK1ir60U7+MoZQheRw3CQg==",
+	    "hashedSalt": "KzhyBhLJ7NKBtpWEF/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslpK1ir60U7+MoZQheRw3CQg=="
+}

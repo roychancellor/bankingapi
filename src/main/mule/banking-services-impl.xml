@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="getCustomerByUsernameFlow" doc:id="50963597-3d51-48fe-8770-d5a7ef7748fe">
+        <flow-ref doc:name="CALL getCustomerIdFromUsernameFlow" doc:id="45f24a3b-0a7c-4db9-a44b-7c4a8abfc001" name="getCustomerIdFromUsernameFlow" />
+        <flow-ref doc:name="CALL getCustomerByIdFlow" doc:id="a553b69b-283b-4d07-ae8a-9474b55cb744" name="getCustomerByIdFlow" />
+        <logger level="INFO" doc:name="Logger" doc:id="f2ef3736-3de1-49ad-a64d-3d375c9d09b3" />
+    </flow>
+    <sub-flow name="getCustomerIdFromUsernameFlow" doc:id="d7c17632-8f74-4d99-bec5-4024687c35ac">
+        <db:select doc:name="Select Id From Username" doc:id="efac31fc-8b2b-4930-af63-fc209bbedd68" config-ref="Banking_AWS_Database_Config">
+            <db:sql>SELECT ${db.database}.${tables.credentials}.customerId
+FROM ${db.database}.${tables.credentials}
+WHERE ${db.database}.${tables.credentials}.userName = :uname</db:sql>
+            <db:input-parameters><![CDATA[#[{'uname' : attributes.queryParams.username}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Set customerId" doc:id="7de8544c-829b-4d42-9c12-d820899aa975">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable variableName="custId"><![CDATA[%dw 2.0
+output application/json
+---
+payload[0].customerId]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" doc:name="Logger" doc:id="f3b7361d-0700-493b-9b71-06455caa568c" />
+    </sub-flow>
+	<flow name="getCustomerByIdFlow" doc:id="2320451f-6c64-4f79-8663-0e72cac8c6ab">
+        <db:select doc:name="Select Customer By ID" doc:id="059e5eb6-02d3-496b-a56e-decbf5727aed" config-ref="Banking_AWS_Database_Config">
+            <db:sql>SELECT ${db.database}.${tables.customers}.customerId, lastName, firstName, email, phone, userName, passwordHash, passwordSalt,
+checkingNumber, checkingBalance, savingNumber, savingBalance, loanNumber, loanBalance
+FROM ${tables.customers}, ${tables.credentials}, ${tables.accounts}
+WHERE ${db.database}.${tables.customers}.customerId = :custId
+AND ${db.database}.${tables.credentials}.customerId = :custId
+AND ${db.database}.${tables.accounts}.customerId = :custId</db:sql>
+            <db:input-parameters><![CDATA[#[{'custId' : vars.custId default attributes.uriParams.id}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform doc:name="Convert to Customer Dashboard Object" doc:id="ef9c9b0a-b670-4b47-ac1b-55d6a719f8f6">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var pay = payload[0]
+---
+{
+	customer: {
+		custId: pay.customerId,
+		firstName: pay.firstName,
+		lastName: pay.lastName,
+		phoneNumber: pay.phone,
+		emailAddress: pay.email,
+		userName: pay.userName,
+		hashedPassword: pay.passwordHash,
+		hashedSalt: pay.passwordSalt
+	},
+	checking: {
+		accountNumber: pay.checkingNumber default "",
+		currentBalance: pay.checkingBalance default 0
+	},
+	saving: {
+		accountNumber: pay.savingNumber default "",
+		currentBalance: pay.savingBalance default 0
+	},
+	loan: {
+		accountNumber: pay.loanNumber default "",
+		currentBalance: pay.loanBalance default 0
+	}
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <logger level="INFO" doc:name="Logger" doc:id="c788655a-80c5-4b76-b095-7103a31f3120" />
+    </flow>
+	<flow name="postCustomersFlow" doc:id="4923b7f1-dcb8-4284-9396-afae7baf665d">
+		<foreach doc:name="For Each Customer in Request Body" doc:id="2927956b-6270-4542-94e2-b84f2d0e83bb" >
+			<db:insert doc:name="Insert New Customer" doc:id="4e67e93e-d767-4ae2-98f3-9c2b55fe3a92" config-ref="Banking_AWS_Database_Config" autoGenerateKeys="true" target="genKeys">
+            <db:sql>INSERT INTO ${db.database}.${tables.customers}
+(lastName, firstName, email, phone)
+VALUES
+(:lastName, :firstName, :email, :phone)</db:sql>
+            <db:input-parameters><![CDATA[#[{
+firstName: payload.firstName,
+lastName: payload.lastName,
+phone: payload.phoneNumber,
+email: payload.emailAddress
+}]]]></db:input-parameters>
+			<db:auto-generated-keys-column-indexes>
+				<db:auto-generated-keys-column-index value="1" />
+			</db:auto-generated-keys-column-indexes>
+        </db:insert>
+			<set-variable value="#[vars.genKeys.generatedKeys.GENERATED_KEY]" doc:name="Set customerId" doc:id="f4d327db-fdf7-4eb3-8ef3-51f86c6f7d77" variableName="customerId"/>
+			<db:insert doc:name="Insert New Customer Credentials" doc:id="9537bdf2-07ba-4920-8002-d077d950f8ff" config-ref="Banking_AWS_Database_Config">
+				<db:sql >INSERT INTO ${db.database}.${tables.credentials}
+(customerId, userName, passwordSalt, passwordHash)
+VALUES
+(:customerId, :username, :salt, :hash)</db:sql>
+				<db:input-parameters ><![CDATA[#[{
+	customerId: vars.customerId,
+	username: payload.userName,
+	salt: payload.hashedSalt,
+	hash: payload.hashedPassword
+}]]]></db:input-parameters>
+			</db:insert>
+			<flow-ref doc:name="CALL createAccountsByCustomerIdSubFlow" doc:id="df8a4096-939c-4586-91a7-8b30c058b5e1" name="createAccountsByCustomerIdSubFlow"/>
+		
+</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="b8abf851-9de0-44b0-9e4c-8297293e8d96" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "Success: " ++ sizeOf(payload) ++ " customer(s) inserted:",
+	customers: {(payload map {
+		($$): $.firstName ++ " " ++ $.lastName
+	})}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="b45224b2-e3ad-475f-b13f-c37be61e4b43" message="#[payload]" />
+    </flow>
+	<sub-flow name="postCustomersBulkInsertSubflow_NOT_USED" doc:id="6c583238-6e0b-42c9-ad5e-36f050d16b7e">
+		<db:bulk-insert doc:name="Bulk insert" doc:id="30b649da-a5c1-4d13-b8e8-474c5902393f" config-ref="Banking_AWS_Database_Config" target="insertResults">
+			<db:bulk-input-parameters><![CDATA[#[payload map {
+firstName: $.firstName,
+lastName: $.lastName,
+phone: $.phoneNumber,
+email: $.emailAddress
+}]]]></db:bulk-input-parameters>
+			<db:sql>INSERT INTO ${db.database}.${tables.customers}
+(lastName, firstName, email, phone)
+VALUES
+(:lastName, :firstName, :email, :phone)</db:sql>
+		</db:bulk-insert>
+	</sub-flow>
+	<sub-flow name="createAccountsByCustomerIdSubFlow" doc:id="86bd3846-ed69-4b8b-979d-3a3cec8bbfd5" doc:description="For a given customerId, creates a Checking, Saving, and Loan account in the customer_accounts and creates an opening balance transaction for each account in the customer_transactions table.">
+		<set-variable value='#[%dw 2.0
+output application/json
+var timeMillis = ((now() as Number {unit: "milliseconds"})/100000) as String
+import * from dw::core::Strings
+---
+{
+	checkingNumber: substringBefore("CHK" ++ timeMillis, "."),
+	checkingBalance: 1000.0,
+	savingNumber: substringBefore("SAV" ++ timeMillis, "."),
+	savingBalance: 3000.0,
+	loanNumber: substringBefore("LOA" ++ timeMillis, "."),
+	loanBalance: -1000.0,
+}]' doc:name="Set Customer Account Information" doc:id="41ab8119-df74-4cec-bab5-647fd2ba0715" variableName="accounts"/>
+		<db:insert doc:name="Insert Customer Accounts" doc:id="e3c46c91-e1fc-43fa-8fe8-0611717ac255" config-ref="Banking_AWS_Database_Config" >
+			<db:sql >INSERT INTO ${db.database}.${tables.accounts}
+(customerId, checkingNumber, checkingBalance, savingNumber, savingBalance, loanNumber, loanBalance)
+VALUES
+(:custId, :checkingNumber, :checkingBalance, :savingNumber, :savingBalance, :loanNumber, :loanBalance)</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+custId: vars.customerId,
+checkingNumber: vars.accounts.checkingNumber,
+checkingBalance: vars.accounts.checkingBalance,
+savingNumber: vars.accounts.savingNumber,
+savingBalance: vars.accounts.savingBalance,
+loanNumber: vars.accounts.loanNumber,
+loanBalance: vars.accounts.loanBalance,
+}]]]></db:input-parameters>
+		</db:insert>
+		<set-variable value='#[output application/json
+---
+{
+customerId: vars.customerId,
+accountNumber: vars.accounts.checkingNumber,
+transAmount: vars.accounts.checkingBalance,
+transDescription: "Opening balance"
+}]' doc:name="Set Checking Opening Balance Transaction" doc:id="301d9cd4-9e80-4a18-934a-0cd39595fac9" variableName="trans"/>
+		<flow-ref doc:name="CALL insertTransactionSubflow -&gt; CHECKING" doc:id="f3a66021-256b-4d47-a795-e6f9ac4442a5" name="insertTransactionSubflow" />
+		<set-variable value='#[output application/json
+---
+{
+customerId: vars.customerId,
+accountNumber: vars.accounts.savingNumber,
+transAmount: vars.accounts.savingBalance,
+transDescription: "Opening balance"
+}]' doc:name="Set Saving Opening Balance Transaction" doc:id="e3b27b42-50e5-4952-a0d1-0c2eac172425" variableName="trans" />
+		<flow-ref doc:name="CALL insertTransactionSubflow -&gt; SAVING" doc:id="cbe0749f-d802-4f0e-9d95-7b8952f8adee" name="insertTransactionSubflow" />
+		<set-variable value='#[output application/json
+---
+{
+customerId: vars.customerId,
+accountNumber: vars.accounts.loanNumber,
+transAmount: vars.accounts.loanBalance,
+transDescription: "Opening balance"
+}]' doc:name="Set Loan Opening Balance Transaction" doc:id="362575ff-9888-4664-91c7-a7955c38404f" variableName="trans" />
+		<flow-ref doc:name="CALL insertTransactionSubflow -&gt; LOAN" doc:id="f7c20229-ead0-45de-bb7d-99e0ab347665" name="insertTransactionSubflow" />
+	</sub-flow>
+	<sub-flow name="insertTransactionSubflow" doc:id="ac8840f8-3dcd-4680-b53e-1f380e13fe26">
+		<db:insert doc:name="Insert Single Transaction" doc:id="6d99e20f-ca40-447c-b582-c825ec8761ab" config-ref="Banking_AWS_Database_Config">
+			<db:sql>INSERT INTO ${db.database}.${tables.transactions}
+(customerId, accountNumber, transAmount, transDescription)
+VALUES
+(:custId, :accnum, :amount, :desc)</db:sql>
+			<db:input-parameters><![CDATA[#[{
+custId: vars.trans.customerId,
+accnum: vars.trans.accountNumber,
+amount: vars.trans.transAmount,
+desc: vars.trans.transDescription
+}]]]></db:input-parameters>
+		</db:insert>
+	</sub-flow>
+</mule>

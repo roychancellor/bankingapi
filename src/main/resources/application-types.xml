@@ -1,0 +1,98 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="customers_example_json" format="json">
+      <types:shape format="weave" example="examples/CustomersExample.json"><![CDATA[%dw 2.0
+
+type customers_example_json = Array<{|  custId: Number {"typeId": "int"},   firstName: String,   lastName: String,   phoneNumber: String,   emailAddress: String,   userName: String,   hashedPassword: String,   hashedSalt: String|}> {"example": "[{\\\"custId\\\":1,\\\"firstName\\\":\\\"Max\\\",\\\"lastName\\\":\\\"Mule\\\",\\\"phoneNumber\\\":\\\"1234567890\\\",\\\"emailAddress\\\":\\\"maxmule@mulesoft.com\\\",\\\"userName\\\":\\\"maxmule\\\",\\\"hashedPassword\\\":\\\"KzhyBhLJ7NKBtpWEF\\/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslpK1ir60U7+MoZQheRw3CQg==\\\",\\\"hashedSalt\\\":\\\"KzhyBhLJ7NKBtpWEF\\/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslpK1ir60U7+MoZQheRw3CQg==\\\"},{\\\"custId\\\":1,\\\"firstName\\\":\\\"Max\\\",\\\"lastName\\\":\\\"Mule\\\",\\\"phoneNumber\\\":\\\"1234567890\\\",\\\"emailAddress\\\":\\\"maxmule@mulesoft.com\\\",\\\"userName\\\":\\\"maxmule\\\",\\\"hashedPassword\\\":\\\"KzhyBhLJ7NKBtpWEF\\/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslpK1ir60U7+MoZQheRw3CQg==\\\",\\\"hashedSalt\\\":\\\"KzhyBhLJ7NKBtpWEF\\/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslpK1ir60U7+MoZQheRw3CQg==\\\"}]"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="customer_example_json" format="json">
+      <types:shape format="weave" example="examples/CustomerExample-2.json"><![CDATA[%dw 2.0
+
+type customer_example_json = {|
+  customer: {|
+    custId: Number {"typeId": "int"}, 
+    firstName: String, 
+    lastName: String, 
+    phoneNumber: String, 
+    emailAddress: String, 
+    userName: String, 
+    hashedPassword: String, 
+    hashedSalt: String
+  |}, 
+  checking: {|
+    accountNumber: String, 
+    currentBalance: Number {"typeId": "double"}
+  |}, 
+  saving: {|
+    accountNumber: String, 
+    currentBalance: Number {"typeId": "double"}
+  |}, 
+  loan: {|
+    accountNumber: String, 
+    currentBalance: Number {"typeId": "double"}
+  |}
+|} {"example": "{\\\"customer\\\":{\\\"custId\\\":1,\\\"firstName\\\":\\\"Max\\\",\\\"lastName\\\":\\\"Mule\\\",\\\"phoneNumber\\\":\\\"1234567890\\\",\\\"emailAddress\\\":\\\"maxmule@mulesoft.com\\\",\\\"userName\\\":\\\"maxmule\\\",\\\"hashedPassword\\\":\\\"KzhyBhLJ7NKBtpWEF\\/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95O\\\",\\\"hashedSalt\\\":\\\"KzhyBhLJ7NKBtpWEF\\/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslp\\\"},\\\"checking\\\":{\\\"accountNumber\\\":\\\"CHK123\\\",\\\"currentBalance\\\":12345.67},\\\"saving\\\":{\\\"accountNumber\\\":\\\"SAV123\\\",\\\"currentBalance\\\":3456.78},\\\"loan\\\":{\\\"accountNumber\\\":\\\"LOA123\\\",\\\"currentBalance\\\":-1234.67}}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="customer_by_username_example_json" format="json">
+      <types:shape format="weave" example="examples/CustomerByUsernameExample.json"><![CDATA[%dw 2.0
+
+type customer_by_username_example_json = {|
+  custId: Number {"typeId": "int"}, 
+  firstName: String, 
+  lastName: String, 
+  phoneNumber: String, 
+  emailAddress: String, 
+  userName: String, 
+  hashedPassword: String, 
+  hashedSalt: String
+|} {"example": "{\\\"custId\\\":1,\\\"firstName\\\":\\\"Max\\\",\\\"lastName\\\":\\\"Mule\\\",\\\"phoneNumber\\\":\\\"1234567890\\\",\\\"emailAddress\\\":\\\"maxmule@mulesoft.com\\\",\\\"userName\\\":\\\"maxmule\\\",\\\"hashedPassword\\\":\\\"KzhyBhLJ7NKBtpWEF\\/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslpK1ir60U7+MoZQheRw3CQg==\\\",\\\"hashedSalt\\\":\\\"KzhyBhLJ7NKBtpWEF\\/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslpK1ir60U7+MoZQheRw3CQg==\\\"}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="customers_no_id_example_json" format="json">
+      <types:shape format="weave" example="examples/CustomersNoIDExample.json"><![CDATA[%dw 2.0
+
+type customers_no_id_example_json = Array<{|  firstName: String,   lastName: String,   phoneNumber: String,   emailAddress: String,   userName: String,   hashedPassword: String,   hashedSalt: String|}> {"example": "[{\"firstName\":\"Max\",\"lastName\":\"Mule\",\"phoneNumber\":\"1234567890\",\"emailAddress\":\"maxmule@mulesoft.com\",\"userName\":\"maxmule\",\"hashedPassword\":\"KzhyBhLJ7NKBtpWEF\/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslpK1ir60U7+MoZQheRw3CQg==\",\"hashedSalt\":\"KzhyBhLJ7NKBtpWEF\/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslpK1ir60U7+MoZQheRw3CQg==\"},{\"firstName\":\"Minnie\",\"lastName\":\"Mule\",\"phoneNumber\":\"1234567890\",\"emailAddress\":\"minniemule@mulesoft.com\",\"userName\":\"minniemule\",\"hashedPassword\":\"KzhyBhLJ7NKBtpWEF\/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslpK1ir60U7+MoZQheRw3CQg==\",\"hashedSalt\":\"KzhyBhLJ7NKBtpWEF\/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslpK1ir60U7+MoZQheRw3CQg==\"}]"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#ef9c9b0a-b670-4b47-ac1b-55d6a719f8f6">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="customer_example_json"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#7de8544c-829b-4d42-9c12-d820899aa975"/>
+  <types:enrichment select="#b8abf851-9de0-44b0-9e4c-8297293e8d96">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="customers_no_id_example_json"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="customers_example_json"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#2927956b-6270-4542-94e2-b84f2d0e83bb">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="customers_example_json"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

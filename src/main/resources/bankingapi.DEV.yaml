@@ -1,0 +1,19 @@
+#http information
+http:
+  port: "8081"
+  host: "localhost"
+
+#database information
+db:
+  host: "bankapp.cv7gypsy9krg.us-east-2.rds.amazonaws.com"
+  port: "3306"
+  user: "root"
+  password: "sqlsqlmysql"
+  database: "bank"
+
+#database schema info
+tables:
+  customers: "customers"
+  credentials: "credentials"
+  transactions: "customer_transactions"
+  accounts: "customer_accounts"
