@@ -185,8 +185,74 @@ transAmount: vars.accounts.loanBalance,
 transDescription: "Opening balance"
 }]' doc:name="Set Loan Opening Balance Transaction" doc:id="362575ff-9888-4664-91c7-a7955c38404f" variableName="trans" />
 		<flow-ref doc:name="CALL insertTransactionSubflow -&gt; LOAN" doc:id="f7c20229-ead0-45de-bb7d-99e0ab347665" name="insertTransactionSubflow" />
+		<logger level="INFO" doc:name="Logger" doc:id="520c4e00-57ab-4b86-9c47-3760ca36840b" />
+	</sub-flow>
+	<sub-flow name="openCheckingAccountSubflow" doc:id="6f50bf8f-4d82-42c5-9de9-d7c55d3cc2de" >
+		<set-variable value='#["CHK"]' doc:name="Set acctPrefix" doc:id="8c82b500-c86e-4683-90b4-7682688b44d8" variableName="acctPrefix"/>
+		<set-variable value="1000.0" doc:name="Set openingBalance" doc:id="9ff42a41-158e-440a-a291-cd229bab3d94" variableName="openingBalance"/>
+		<flow-ref doc:name="CALL createCustomerAccountSubflow" doc:id="f86541ae-6542-45a3-ae4d-fd40316dd1ff" name="createCustomerAccount" />
+	</sub-flow>
+	<sub-flow name="createCustomerAccount" doc:id="2eb5817b-a564-459e-b542-5e2ac6367cce">
+		<set-variable value='#[%dw 2.0
+output application/java
+var timeMillis = ((now() as Number {unit: "milliseconds"})/100000) as String
+import * from dw::core::Strings
+---
+substringBefore(vars.acctPrefix ++ timeMillis, ".")]' doc:name="Set accountNumber" doc:id="693b573e-c819-43b0-92cc-62dca5383fa6" variableName="accountNumber" />
+		<choice doc:name="Choice of Account Types" doc:id="bfcb25da-2889-4163-a8fc-3b7f577372e0" >
+			<when expression='#[vars.acctPrefix == "CHK"]'>
+				<set-variable value='#[output application/json
+---
+{
+	accountNumber: "checkingNumber",
+	accountBalance: "checkingBalance"
+}]' doc:name="Set accountFieldNames" doc:id="8591d09c-f956-4cbf-8f0d-218780ee964b" variableName="accountFieldNames"/>
+			</when>
+			<when expression='vars.acctPrefix == "SAV"'>
+				<set-variable value='#[output application/json
+---
+{
+	accountNumber: "savingNumber",
+	accountBalance: "savingBalance"
+}]' doc:name="Set accountFieldNames" doc:id="cc5fd166-ace2-46cd-a77e-b4e12c1be6ed" variableName="accountFieldNames"/>
+			</when>
+			<when expression='vars.acctPrefix == "LOA"'>
+				<set-variable value='#[output application/json
+---
+{
+	accountNumber: "loanNumber",
+	accountBalance: "loanBalance"
+}]' doc:name="Set accountFieldNames" doc:id="df5151ca-e612-410c-bee7-ad779ba697ad" variableName="accountFieldNames"/>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raise error" doc:id="6b17fa3e-69ca-4afd-8729-b95a5e6b6b40" type="MULE:ANY"/>
+			</otherwise>
+		</choice>
+		<db:insert doc:name="Insert Customer Account" doc:id="9beef68f-ff93-45f1-b5f7-9771bc7dbf57" config-ref="Banking_AWS_Database_Config">
+			<db:sql>INSERT INTO ${db.database}.${tables.accounts}
+(customerId, :accNumCol, :accBalCol)
+VALUES
+(:custId, :accountNumber, :openingBalance)</db:sql>
+			<db:input-parameters><![CDATA[#[{
+	acctNumCol: vars.accountFieldNames.accountNumber,
+	acctBalCol: vars.accountFieldNames.accountBalance,
+	custId: vars.customerId,
+	accountNumber: vars.accountNumber,
+	openingBalance: vars.openingBalance
+}]]]></db:input-parameters>
+		</db:insert>
+		<flow-ref doc:name="CALL insertTransactionSubflow" doc:id="9397db68-6990-4fe3-9ec5-78e68b228d85" name="insertTransactionSubflow" />
+		<logger level="INFO" doc:name="Logger" doc:id="2f0a4e35-5aa1-471e-ab04-d036ac7265ad" />
 	</sub-flow>
 	<sub-flow name="insertTransactionSubflow" doc:id="ac8840f8-3dcd-4680-b53e-1f380e13fe26">
+		<set-variable value='#[output application/json
+---
+{
+	customerId: vars.customerId,
+	accountNumber: vars.accountNumber,
+	transAmount: vars.accountBalance,
+	transDescription: "Opening balance"
+}]' doc:name="Set Opening Balance Transaction" doc:id="09c93a4d-66d8-47a5-9a2f-83601d826936" variableName="trans" />
 		<db:insert doc:name="Insert Single Transaction" doc:id="6d99e20f-ca40-447c-b582-c825ec8761ab" config-ref="Banking_AWS_Database_Config">
 			<db:sql>INSERT INTO ${db.database}.${tables.transactions}
 (customerId, accountNumber, transAmount, transDescription)
@@ -199,5 +265,6 @@ amount: vars.trans.transAmount,
 desc: vars.trans.transDescription
 }]]]></db:input-parameters>
 		</db:insert>
+		<logger level="INFO" doc:name="Logger" doc:id="1a428fa4-5e21-4fc5-ac4e-a2d56f3fd52b" />
 	</sub-flow>
 </mule>
