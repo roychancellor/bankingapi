@@ -216,7 +216,7 @@ transDescription: "Opening balance"
 	<sub-flow name="setAccountNumberSubflow" doc:id="bf1ab27c-8982-40d5-b25f-7167843a961c">
 		<set-variable value='#[%dw 2.0
 output application/java
-var timeMillis = ((now() as Number {unit: "milliseconds"})/100000) as String
+var timeMillis = ((now() as Number {unit: "milliseconds"})/1000000) as String
 import * from dw::core::Strings
 ---
 substringBefore(vars.acctPrefix ++ timeMillis, ".")]' doc:name="Set accountNumber" doc:id="693b573e-c819-43b0-92cc-62dca5383fa6" variableName="accountNumber" />
