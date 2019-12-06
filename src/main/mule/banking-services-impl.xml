@@ -5,7 +5,7 @@
         <flow-ref doc:name="CALL getCustomerByIdFlow" doc:id="a553b69b-283b-4d07-ae8a-9474b55cb744" name="getCustomerByIdFlow" />
         <logger level="INFO" doc:name="Logger" doc:id="f2ef3736-3de1-49ad-a64d-3d375c9d09b3" />
     </flow>
-    <sub-flow name="getCustomerIdFromUsernameFlow" doc:id="d7c17632-8f74-4d99-bec5-4024687c35ac">
+	<sub-flow name="getCustomerIdFromUsernameFlow" doc:id="d7c17632-8f74-4d99-bec5-4024687c35ac">
         <db:select doc:name="Select Id From Username" doc:id="efac31fc-8b2b-4930-af63-fc209bbedd68" config-ref="Banking_AWS_Database_Config">
             <db:sql>SELECT ${db.database}.${tables.credentials}.customerId
 FROM ${db.database}.${tables.credentials}
@@ -187,28 +187,31 @@ transDescription: "Opening balance"
 		<flow-ref doc:name="CALL insertTransactionSubflow -&gt; LOAN" doc:id="f7c20229-ead0-45de-bb7d-99e0ab347665" name="insertTransactionSubflow" />
 		<logger level="INFO" doc:name="Logger" doc:id="520c4e00-57ab-4b86-9c47-3760ca36840b" />
 	</sub-flow>
-	<sub-flow name="createAccountsByCustomerIdSubFlow" doc:id="81e4bdfe-ae64-4816-b024-bc09f77b4053" >
-		<flow-ref doc:name="CALL openCheckingAccountSubflow" doc:id="ad62dbb1-5a52-4755-a510-07b320d3e20d" name="openCheckingAccountSubflow"/>
-		<flow-ref doc:name="CALL openSavingAccountSubflow" doc:id="204e8b11-70bd-44b4-b005-5b35ccc23e52" name="openSavingAccountSubflow"/>
-		<flow-ref doc:name="CALL openLoanAccountSubflow" doc:id="4bd01a73-ea92-447e-9cd2-b32c6fc10ef1" name="openLoanAccountSubflow"/>
+	<sub-flow name="createAccountsByCustomerIdSubFlow" doc:id="81e4bdfe-ae64-4816-b024-bc09f77b4053">
+		<flow-ref doc:name="CALL openCheckingAccountSubflow" doc:id="ad62dbb1-5a52-4755-a510-07b320d3e20d" name="openCheckingAccountSubflow" />
+		<flow-ref doc:name="CALL openSavingAccountSubflow" doc:id="204e8b11-70bd-44b4-b005-5b35ccc23e52" name="openSavingAccountSubflow" />
+		<flow-ref doc:name="CALL openLoanAccountSubflow" doc:id="4bd01a73-ea92-447e-9cd2-b32c6fc10ef1" name="openLoanAccountSubflow" />
 	</sub-flow>
 	<sub-flow name="openCheckingAccountSubflow" doc:id="6f50bf8f-4d82-42c5-9de9-d7c55d3cc2de" >
 		<set-variable value='#["CHK"]' doc:name="Set acctPrefix" doc:id="8c82b500-c86e-4683-90b4-7682688b44d8" variableName="acctPrefix"/>
-		<flow-ref doc:name="CALL setAccountNumberSubflow" doc:id="99fd904f-0c90-41d0-b82d-405a6fdd5132" name="setAccountNumberSubflow" />
-		<set-variable value="1000.0" doc:name="Set openingBalance" doc:id="9ff42a41-158e-440a-a291-cd229bab3d94" variableName="openingBalance"/>
-		<flow-ref doc:name="CALL createCustomerAccountSubflow" doc:id="f86541ae-6542-45a3-ae4d-fd40316dd1ff" name="createCustomerAccount" />
+		<set-variable value="1000.0" doc:name="Set accountBalance" doc:id="9ff42a41-158e-440a-a291-cd229bab3d94" variableName="accountBalance" />
+		<flow-ref doc:name="CALL openNewAccountSubflow" doc:id="da0547d8-acee-4e51-96a8-5c5f64af76fb" name="openNewAccountSubflow" />
 	</sub-flow>
 	<sub-flow name="openSavingAccountSubflow" doc:id="22afa453-b364-4ba2-af83-e03c44ef97d3">
 		<set-variable value='#["SAV"]' doc:name="Set acctPrefix" doc:id="b9fcd441-dddf-49fa-adc2-b1db7ad053d4" variableName="acctPrefix" />
-		<flow-ref doc:name="CALL setAccountNumberSubflow" doc:id="bdc5ae4d-90be-4782-b7c2-f18b0ea41e63" name="setAccountNumberSubflow" />
-		<set-variable value="3000.0" doc:name="Set openingBalance" doc:id="74d87e09-3711-4462-be14-fd620a0787bc" variableName="openingBalance" />
-		<flow-ref doc:name="CALL createCustomerAccountSubflow" doc:id="939739c8-e5e6-4b02-ba50-a68e8465e5d2" name="createCustomerAccount" />
+		<set-variable value="3000.0" doc:name="Set accountBalance" doc:id="74d87e09-3711-4462-be14-fd620a0787bc" variableName="accountBalance" />
+		<flow-ref doc:name="CALL openNewAccountSubflow" doc:id="ed25c1e1-8bd7-4909-9e5a-8503857898a7" name="openNewAccountSubflow" />
 	</sub-flow>
 	<sub-flow name="openLoanAccountSubflow" doc:id="3f5c8db3-c142-4691-a620-dbb72ad33408">
 		<set-variable value='#["LOA"]' doc:name="Set acctPrefix" doc:id="241cfdfd-f36c-42ac-94e5-0050c583d45e" variableName="acctPrefix" />
-		<flow-ref doc:name="CALL setAccountNumberSubflow" doc:id="021aa83b-fe5d-4f38-a984-fbae4f86baee" name="setAccountNumberSubflow" />
-		<set-variable value="-1000.0" doc:name="Set openingBalance" doc:id="54a86521-7f37-42d1-abe6-f2f50347be10" variableName="openingBalance" />
-		<flow-ref doc:name="CALL createCustomerAccountSubflow" doc:id="f887991a-be91-47ae-a4f4-dae626ebb81f" name="createCustomerAccount" />
+		<set-variable value="-1000.0" doc:name="Set accountBalance" doc:id="54a86521-7f37-42d1-abe6-f2f50347be10" variableName="accountBalance" />
+		<flow-ref doc:name="CALL openNewAccountSubflow" doc:id="e8eb9912-9fcf-46ae-98c2-9c270bacf18b" name="openNewAccountSubflow" />
+	</sub-flow>
+	<sub-flow name="openNewAccountSubflow" doc:id="f4d1e713-148a-491f-8e0b-3f9cf46197d3">
+		<set-variable value='"Opening balance"' doc:name="Set transDescription" doc:id="586f5692-7b09-4bb4-878b-8726f8885448" variableName="transDescription" />
+		<flow-ref doc:name="CALL setAccountNumberSubflow" doc:id="99fd904f-0c90-41d0-b82d-405a6fdd5132" name="setAccountNumberSubflow" />
+		<flow-ref doc:name="CALL createCustomerAccountSubflow" doc:id="f86541ae-6542-45a3-ae4d-fd40316dd1ff" name="createCustomerAccount" />
+		<flow-ref doc:name="CALL insertTransactionSubflow" doc:id="7f7060a0-af99-4223-932b-5e326a7e3318" name="insertTransactionSubflow" />
 	</sub-flow>
 	<sub-flow name="setAccountNumberSubflow" doc:id="bf1ab27c-8982-40d5-b25f-7167843a961c">
 		<set-variable value='#[%dw 2.0
@@ -253,14 +256,13 @@ substringBefore(vars.acctPrefix ++ timeMillis, ".")]' doc:name="Set accountNumbe
 &quot;INSERT INTO ${db.database}.${tables.accounts}
 (customerId, $(vars.accountFieldNames.accountNumber), $(vars.accountFieldNames.accountBalance))
 VALUES
-($(vars.customerId),'$(vars.accountNumber)',$(vars.openingBalance))
+($(vars.customerId),'$(vars.accountNumber)',$(vars.accountBalance))
 ON DUPLICATE KEY UPDATE
-$(vars.accountFieldNames.accountNumber) = $(vars.accountNumber),
-$(vars.accountFieldNames.accountBalance) = $(vars.openingBalance)&quot;]" doc:name="Set Insert Account SQL" doc:id="ef230660-b565-4c52-a629-273bb431c892" variableName="insertAccountSQL"/>
+$(vars.accountFieldNames.accountNumber) = '$(vars.accountNumber)',
+$(vars.accountFieldNames.accountBalance) = $(vars.accountBalance)&quot;]" doc:name="Set Insert Account SQL" doc:id="ef230660-b565-4c52-a629-273bb431c892" variableName="insertAccountSQL"/>
 		<db:insert doc:name="Insert Customer Account" doc:id="9beef68f-ff93-45f1-b5f7-9771bc7dbf57" config-ref="Banking_AWS_Database_Config">
 			<db:sql>#[vars.insertAccountSQL]</db:sql>
 		</db:insert>
-		<flow-ref doc:name="CALL insertTransactionSubflow" doc:id="9397db68-6990-4fe3-9ec5-78e68b228d85" name="insertTransactionSubflow" />
 		<logger level="INFO" doc:name="Logger" doc:id="2f0a4e35-5aa1-471e-ab04-d036ac7265ad" />
 	</sub-flow>
 	<sub-flow name="insertTransactionSubflow" doc:id="ac8840f8-3dcd-4680-b53e-1f380e13fe26">
@@ -270,8 +272,8 @@ $(vars.accountFieldNames.accountBalance) = $(vars.openingBalance)&quot;]" doc:na
 	customerId: vars.customerId,
 	accountNumber: vars.accountNumber,
 	transAmount: vars.accountBalance,
-	transDescription: "Opening balance"
-}]' doc:name="Set Opening Balance Transaction" doc:id="09c93a4d-66d8-47a5-9a2f-83601d826936" variableName="trans" />
+	transDescription: vars.transDescription
+}]' doc:name="Set Transaction Details" doc:id="09c93a4d-66d8-47a5-9a2f-83601d826936" variableName="trans" />
 		<db:insert doc:name="Insert Single Transaction" doc:id="6d99e20f-ca40-447c-b582-c825ec8761ab" config-ref="Banking_AWS_Database_Config">
 			<db:sql>INSERT INTO ${db.database}.${tables.transactions}
 (customerId, accountNumber, transAmount, transDescription)
