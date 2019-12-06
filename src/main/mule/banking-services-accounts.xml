@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	
+	<sub-flow name="createAccountsByCustomerIdSubFlow" doc:id="21b2b480-29e5-43c9-b2ef-5382604da3c1">
+		<flow-ref doc:name="CALL openCheckingAccountSubflow" doc:id="2e1d4e3b-4196-42b4-bd8d-bc1935e35ed1" name="openCheckingAccountSubflow" />
+		<flow-ref doc:name="CALL openSavingAccountSubflow" doc:id="095ac615-8569-4e11-8083-fdb3a562aa49" name="openSavingAccountSubflow" />
+		<flow-ref doc:name="CALL openLoanAccountSubflow" doc:id="8ee98ed3-d41d-4de4-9259-5193a2f38b5c" name="openLoanAccountSubflow" />
+	</sub-flow>
+	<sub-flow name="openCheckingAccountSubflow" doc:id="ad0f66f6-5ad1-4538-b844-e1d04cadc19c" >
+		<set-variable value='#["CHK"]' doc:name="Set acctPrefix" doc:id="1ac1af8d-a9f7-49cc-9893-2c01e55cbfd5" variableName="acctPrefix"/>
+		<set-variable value="1000.0" doc:name="Set accountBalance" doc:id="4ad6f2ff-7a6e-4f01-b225-e161b80eb4cd" variableName="accountBalance" />
+		<flow-ref doc:name="CALL openNewAccountSubflow" doc:id="28b81130-be22-4b3e-abc8-04796cd74144" name="openNewAccountSubflow" />
+	</sub-flow>
+	<sub-flow name="openSavingAccountSubflow" doc:id="5dcb42ee-dbc9-4628-a68b-bc69ee9855a4">
+		<set-variable value='#["SAV"]' doc:name="Set acctPrefix" doc:id="00369ce0-6d1c-449d-90d1-349477569472" variableName="acctPrefix" />
+		<set-variable value="3000.0" doc:name="Set accountBalance" doc:id="53e337a0-b3b4-4f56-982f-987ac39c4610" variableName="accountBalance" />
+		<flow-ref doc:name="CALL openNewAccountSubflow" doc:id="3861dc9c-aebe-4b30-b7bb-643194e2521c" name="openNewAccountSubflow" />
+	</sub-flow>
+	<sub-flow name="openLoanAccountSubflow" doc:id="90e0349d-2f78-40c9-bad2-91fd45322217">
+		<set-variable value='#["LOA"]' doc:name="Set acctPrefix" doc:id="d6eccb7f-80d5-476e-a001-523711b0c37d" variableName="acctPrefix" />
+		<set-variable value="-1000.0" doc:name="Set accountBalance" doc:id="141e575c-7e59-48d8-9488-0ca474286d89" variableName="accountBalance" />
+		<flow-ref doc:name="CALL openNewAccountSubflow" doc:id="ff863ad6-e342-44a5-8850-31ee69434fa8" name="openNewAccountSubflow" />
+	</sub-flow>
+	<sub-flow name="openNewAccountSubflow" doc:id="e30fa834-2eda-4805-ba2c-0ed024b5bf0d">
+		<set-variable value='"Opening balance"' doc:name="Set transDescription" doc:id="1ed42faf-8e00-4bbc-9b1b-21fa0f7a94e7" variableName="transDescription" />
+		<flow-ref doc:name="CALL setAccountNumberSubflow" doc:id="b120e9c8-dc0c-4130-bd01-ad62be396c82" name="setAccountNumberSubflow" />
+		<flow-ref doc:name="CALL createCustomerAccountSubflow" doc:id="bffaefa9-3516-4e6b-bcdd-2f4b8023ab56" name="createCustomerAccount" />
+		<flow-ref doc:name="CALL insertTransactionSubflow" doc:id="8b3fc075-194b-4d35-ab1e-cefa4415227d" name="insertTransactionSubflow" />
+	</sub-flow>
+	<sub-flow name="setAccountNumberSubflow" doc:id="56ab9b39-e1f4-413d-a4ab-12c203595642">
+		<set-variable value='#[%dw 2.0
+output application/java
+var timeMillis = ((now() as Number {unit: "milliseconds"})/1000000) as String
+import * from dw::core::Strings
+---
+substringBefore(vars.acctPrefix ++ timeMillis, ".")]' doc:name="Set accountNumber" doc:id="d7038245-abde-4223-b0c4-01d2f883443f" variableName="accountNumber" />
+	</sub-flow>
+	<sub-flow name="createCustomerAccount" doc:id="1b084e88-4d4c-4101-a5ac-9d0caa117b8a">
+		<choice doc:name="Choice of Account Types" doc:id="f6a1cab5-8337-4818-a737-24dc3892f51d" >
+			<when expression='#[vars.acctPrefix == "CHK"]'>
+				<set-variable value="#[output application/json
+---
+{
+	accountNumber: 'checkingNumber',
+	accountBalance: 'checkingBalance'
+}]" doc:name="Set accountFieldNames" doc:id="69c6762e-8c2c-4848-9ce7-dccf19ece084" variableName="accountFieldNames"/>
+			</when>
+			<when expression='vars.acctPrefix == "SAV"'>
+				<set-variable value="#[output application/json
+---
+{
+	accountNumber: 'savingNumber',
+	accountBalance: 'savingBalance'
+}]" doc:name="Set accountFieldNames" doc:id="325d174e-28f5-439d-a8a0-bef1fd0b670b" variableName="accountFieldNames"/>
+			</when>
+			<when expression='vars.acctPrefix == "LOA"'>
+				<set-variable value="#[output application/json
+---
+{
+	accountNumber: 'loanNumber',
+	accountBalance: 'loanBalance'
+}]" doc:name="Set accountFieldNames" doc:id="685e3e44-b148-4c01-a638-e2fc214c1abb" variableName="accountFieldNames"/>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raise error" doc:id="33f5b87f-2965-42ae-abda-f730cdc3829e" type="MULE:ANY"/>
+			</otherwise>
+		</choice>
+		<set-variable value="#[output application/java
+---
+&quot;INSERT INTO ${db.database}.${tables.accounts}
+(customerId, $(vars.accountFieldNames.accountNumber), $(vars.accountFieldNames.accountBalance))
+VALUES
+($(vars.customerId),'$(vars.accountNumber)',$(vars.accountBalance))
+ON DUPLICATE KEY UPDATE
+$(vars.accountFieldNames.accountNumber) = '$(vars.accountNumber)',
+$(vars.accountFieldNames.accountBalance) = $(vars.accountBalance)&quot;]" doc:name="Set Insert Account SQL" doc:id="566ec011-584a-440f-8b73-2475979964fd" variableName="insertAccountSQL"/>
+		<db:insert doc:name="Insert Customer Account" doc:id="ce410f7a-6138-4375-bb10-9eca238dffb7" config-ref="Banking_AWS_Database_Config">
+			<db:sql>#[vars.insertAccountSQL]</db:sql>
+		</db:insert>
+		<logger level="INFO" doc:name="Logger" doc:id="37bbc199-76f0-4b33-b5ec-6b61c5e27833" />
+	</sub-flow>
+	<sub-flow name="insertTransactionSubflow" doc:id="b9983a42-0190-43d1-989d-3c42bce09bd0">
+		<set-variable value='#[output application/json
+---
+{
+	customerId: vars.customerId,
+	accountNumber: vars.accountNumber,
+	transAmount: vars.accountBalance,
+	transDescription: vars.transDescription
+}]' doc:name="Set Transaction Details" doc:id="db62b5e6-c61a-47e3-bc7e-5cc4f9cb1d59" variableName="trans" />
+		<db:insert doc:name="Insert Single Transaction" doc:id="b9495b32-5402-4275-85f1-176e2558e0b1" config-ref="Banking_AWS_Database_Config">
+			<db:sql>INSERT INTO ${db.database}.${tables.transactions}
+(customerId, accountNumber, transAmount, transDescription)
+VALUES
+(:custId, :accnum, :amount, :desc)</db:sql>
+			<db:input-parameters><![CDATA[#[{
+custId: vars.trans.customerId,
+accnum: vars.trans.accountNumber,
+amount: vars.trans.transAmount,
+desc: vars.trans.transDescription
+}]]]></db:input-parameters>
+		</db:insert>
+		<logger level="INFO" doc:name="Logger" doc:id="0751c0a8-c13e-4e70-a96b-dc6d2fda461e" />
+	</sub-flow>
+	
+	</mule>
