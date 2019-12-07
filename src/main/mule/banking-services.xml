@@ -2,13 +2,13 @@
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
     <apikit:config name="banking-services-config" api="resource::20456335-ad80-443f-bf0f-ce31f11b2174:banking-services:1.0.5:raml:zip:banking-services.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <flow name="banking-services-main">
-        <http:listener path="/api/*" config-ref="httpListenerConfig">
+        <http:listener config-ref="httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
             </http:response>
             <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body><![CDATA[#[payload]]]></http:body>
-                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
             </http:error-response>
         </http:listener>
         <apikit:router config-ref="banking-services-config"/>
@@ -94,13 +94,13 @@ output application/json
         </error-handler>
     </flow>
     <flow name="banking-services-console">
-        <http:listener path="/console/*" config-ref="httpListenerConfig">
+        <http:listener config-ref="httpListenerConfig" path="/console/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
             </http:response>
             <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body><![CDATA[#[payload]]]></http:body>
-                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
             </http:error-response>
         </http:listener>
         <apikit:console config-ref="banking-services-config"/>
@@ -120,23 +120,6 @@ output application/json
             </on-error-propagate>
         </error-handler>
     </flow>
-    <flow name="put:\customers\(id):application\json:banking-services-config">
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
-            <ee:variables>
-                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  message: "Customer replaced or added (not really, still UNIMPLEMENTED)"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-    </flow>
     <flow name="delete:\customers\(id):banking-services-config">
         <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
             <ee:variables>
@@ -154,7 +137,7 @@ output application/json
             </ee:message>
         </ee:transform>
     </flow>
-    <flow name="patch:\customers\(id):banking-services-config">
+    <flow name="patch:\customers\(id):application\json:banking-services-config">
         <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
             <ee:variables>
                 <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
@@ -166,13 +149,13 @@ output application/json
 output application/json
 ---
 {
-  message: "Customer updated (not really, still UNIMPLEMENTED)"
+  message: "Customer updated with new value"
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
     </flow>
     <flow name="get:\customers:banking-services-config">
-        <flow-ref doc:name="CALL getCustomerByUsername Flow" doc:id="cd72bf18-c0b4-4e4d-aa95-df05f48bb0fc" name="getCustomerByUsernameFlow" />
+		<flow-ref doc:name="CALL getCustomerByUsername Flow" doc:id="547fdd6b-235f-4dbc-b5b7-ab4f5f0493a3" name="getCustomerByUsernameFlow" />
     </flow>
     <flow name="get:\transactions:banking-services-config">
         <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
@@ -196,7 +179,7 @@ output application/json
       accountNumber: "CHK123",
       currentBalance: 12345.67,
       terms: {
-        overdraftFee: 25.0,
+        overdraftFee: 25.00,
         feeRequired: true
       }
     },
@@ -229,9 +212,9 @@ output application/json
       currentBalance: 3456.78,
       interestEarned: 23.45,
       terms: {
-        minBalance: 100.0,
+        minBalance: 100.00,
         interestRate: 0.04,
-        serviceFee: 25.0,
+        serviceFee: 25.00,
         feeRequired: true
       }
     },
@@ -267,9 +250,9 @@ output application/json
       terms: {
         monthlyPaymentAmount: 123.45,
         monthlyInterestRate: 0.0083333,
-        lateFee: 25.0,
+        lateFee: 25.00,
         termYears: 5,
-        creditLimit: 5000.0,
+        creditLimit: 5000.00,
         feeRequired: true
       }
     },
@@ -327,7 +310,7 @@ output application/json
       accountNumber: "CHK123",
       currentBalance: 12345.67,
       terms: {
-        overdraftFee: 25.0,
+        overdraftFee: 25.00,
         feeRequired: true
       }
     },
@@ -360,9 +343,9 @@ output application/json
       currentBalance: 3456.78,
       interestEarned: 23.45,
       terms: {
-        minBalance: 100.0,
+        minBalance: 100.00,
         interestRate: 0.04,
-        serviceFee: 25.0,
+        serviceFee: 25.00,
         feeRequired: true
       }
     },
@@ -398,9 +381,9 @@ output application/json
       terms: {
         monthlyPaymentAmount: 123.45,
         monthlyInterestRate: 0.0083333,
-        lateFee: 25.0,
+        lateFee: 25.00,
         termYears: 5,
-        creditLimit: 5000.0,
+        creditLimit: 5000.00,
         feeRequired: true
       }
     },
@@ -432,10 +415,10 @@ output application/json
         </ee:transform>
     </flow>
     <flow name="get:\customers\(id):banking-services-config">
-        <flow-ref doc:name="CALL getCustomerByIdFlow" doc:id="4fd16ce4-92cd-4c01-a52b-ac26937f8af3" name="getCustomerByIdFlow" />
+		<flow-ref doc:name="CALL getCustomerByIdFlow" doc:id="a614db15-1749-4e52-a941-d11400289194" name="getCustomerByIdFlow" />
     </flow>
     <flow name="post:\customers:application\json:banking-services-config">
-        <flow-ref doc:name="CALL postCustomersFlow" doc:id="5d0fbd75-4694-461d-8abc-c243dda5827e" name="postCustomersFlow" />
+		<flow-ref doc:name="CALL postCustomersFlow" doc:id="fc0701bc-4c1e-417b-9349-49589e20ffc4" name="postCustomersFlow" />
     </flow>
     <flow name="post:\transactions\(id):application\json:banking-services-config">
         <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
@@ -450,23 +433,6 @@ output application/json
 ---
 {
   message: "Transaction added (not really, still UNIMPLEMENTED)"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-    </flow>
-    <flow name="patch:\customers\(id):application\json:banking-services-config">
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
-            <ee:variables>
-                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  message: "Customer updated with new value"
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>
