@@ -1,0 +1,15 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  customer:
+    type: !include ../customers/Customer.raml
+    required: true
+  checking:
+    type: !include ../accounts/GeneralAccount.raml
+    required: false
+  saving:
+    type: !include ../accounts/GeneralAccount.raml
+    required: false
+  loan:
+    type: !include ../accounts/GeneralAccount.raml
+    required: false

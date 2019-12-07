@@ -1,0 +1,157 @@
+#%RAML 1.0
+baseUri: https://anypoint.mulesoft.com/mocking/api/v1/links/50d02773-9a0c-4ce1-a38d-d8c12f650aa7/ # 
+title: Banking Services API
+version: v1
+
+types:
+  CustomerInfo: !include datatypes/customers/Customer.raml
+  CustomerNoID: !include datatypes/customers/CustomerNoID.raml
+  CustomerDashboard: !include datatypes/customers/CustomerDashboard.raml
+  CustomerTransactions: !include datatypes/customers/CustomerTransactions.raml
+  CustomerUpdate: !include datatypes/customers/UpdateCustomer.raml
+
+/customers:
+  get:
+    description: Returns a Customer Dashboard object corresponding to the required username, if it exists in the database.
+    queryParameters:
+      username:
+        type: string
+        required: true
+    responses:
+      200:
+        body:
+          application/json:
+            type: CustomerDashboard
+            examples:
+              output: !include examples/CustomerDashboardExample.raml
+      400:
+        body:
+          application/json:
+            example:
+              message: Bad request - requires query parameter username
+  post:
+    description: Adds an array of Customer objects to the database
+    body:
+      application/json:
+        type: CustomerNoID[]
+        example:
+          !include examples/CustomersNoIDExample.raml
+    responses:
+      201:
+        body:
+          application/json:
+            example:
+              message: Customer(s) created
+      400:
+        body:
+          application/json:
+            example:
+              message: Bad request - body must be JSON array of Customer objects
+  /{id}:
+    uriParameters:
+      id:
+        type: integer
+        minimum: 1
+    get:
+      description: Returns a CustomerDashboard object corresponding to the customerID passed as a URI parameter, if that customerID exists
+      responses:
+        200:
+          body:
+            application/json:
+              type: CustomerDashboard
+              examples:
+                output: !include examples/CustomerDashboardExample.raml
+        400:
+          body:
+            application/json:
+              example:
+                message: Bad request - should be /customers with a URI of custID
+    patch:
+      description: Updates a part or parts of a customer object, if it exists for the given URI parameter
+      body:
+        application/json:
+          type: CustomerUpdate
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: Customer updated with new value
+        404:
+          body:
+            application/json:
+              example:
+                message: Bad request, ID not found or invalid
+    delete:
+      description: Deletes a Customer object, if it exists
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: Customer deleted (not really, still UNIMPLEMENTED)
+        404:
+          body:
+            application/json:
+              example:
+                message: Bad request, ID not found or invalid
+/transactions:
+  get:
+    description: Returns all transactions for a single customer referenced by username.
+    queryParameters:
+      username:
+        type: string
+        required: true
+    responses:
+      200:
+        body:
+          application/json:
+            type: CustomerTransactions
+            examples:
+              output: !include examples/CustomerTransactionsExample.raml
+      400:
+        body:
+          application/json:
+            example:
+              message: Bad request - query parameter username is REQUIRED
+  /{id}:
+    uriParameters:
+      id:
+        type: integer
+        minimum: 1
+    get:
+      description: Returns all transactions for a single customer by ID
+      queryParameters:
+        username:
+          type: string
+          required: false
+      responses:
+        200:
+          body:
+            application/json:
+              type: CustomerTransactions
+              examples:
+                output: !include examples/CustomerTransactionsExample.raml
+        400:
+          body:
+            application/json:
+              example:
+                message: Bad request
+    post:
+      description: Adds a transaction to the database for the customer ID
+      body:
+        application/json:
+          type: !include datatypes/transactions/TransactionNoTimestamp.raml
+          example:
+            !include examples/TransactionNoTimestampExample.raml
+      responses:
+        201:
+          body:
+            application/json:
+              example:
+                message: Transaction added (not really, still UNIMPLEMENTED)
+        400:
+          body:
+            application/json:
+              example:
+                message: Bad request - body must be JSON Transaction object

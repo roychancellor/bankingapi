@@ -1,0 +1,13 @@
+#%RAML 1.0 DataType
+
+type: object
+properties:
+  transList:
+    type: array
+    items: !include ../transactions/Transaction.raml
+    minItems: 1
+    uniqueItems: true
+    required: false
+  lastTrans:
+    type: !include ../transactions/Transaction.raml
+    required: false

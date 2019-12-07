@@ -1,0 +1,9 @@
+#%RAML 1.0 DataType
+type: object
+description: Data type for updating (PATCHing) an existing customer
+properties:
+  operation:
+    type: string
+    enum: [replace]
+  path: string
+  value: string

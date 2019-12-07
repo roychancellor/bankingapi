@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd ">
     <apikit:config name="banking-services-config" api="resource::20456335-ad80-443f-bf0f-ce31f11b2174:banking-services:1.0.5:raml:zip:banking-services.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <flow name="banking-services-main">
         <http:listener path="/api/*" config-ref="httpListenerConfig">
@@ -11,7 +11,7 @@
                 <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:error-response>
         </http:listener>
-        <apikit:router config-ref="banking-services-config" />
+        <apikit:router config-ref="banking-services-config"/>
         <error-handler>
             <on-error-propagate type="APIKIT:BAD_REQUEST">
                 <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
@@ -103,7 +103,7 @@ output application/json
                 <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:error-response>
         </http:listener>
-        <apikit:console config-ref="banking-services-config" />
+        <apikit:console config-ref="banking-services-config"/>
         <error-handler>
             <on-error-propagate type="APIKIT:NOT_FOUND">
                 <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
@@ -172,7 +172,7 @@ output application/json
         </ee:transform>
     </flow>
     <flow name="get:\customers:banking-services-config">
-		<flow-ref doc:name="CALL getCustomerByUsername Flow" doc:id="cd72bf18-c0b4-4e4d-aa95-df05f48bb0fc" name="getCustomerByUsernameFlow"/>
+        <flow-ref doc:name="CALL getCustomerByUsername Flow" doc:id="cd72bf18-c0b4-4e4d-aa95-df05f48bb0fc" name="getCustomerByUsernameFlow" />
     </flow>
     <flow name="get:\transactions:banking-services-config">
         <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
@@ -432,10 +432,10 @@ output application/json
         </ee:transform>
     </flow>
     <flow name="get:\customers\(id):banking-services-config">
-        <flow-ref doc:name="CALL getCustomerByIdFlow" doc:id="4fd16ce4-92cd-4c01-a52b-ac26937f8af3" name="getCustomerByIdFlow"/>
+        <flow-ref doc:name="CALL getCustomerByIdFlow" doc:id="4fd16ce4-92cd-4c01-a52b-ac26937f8af3" name="getCustomerByIdFlow" />
     </flow>
     <flow name="post:\customers:application\json:banking-services-config">
-		<flow-ref doc:name="CALL postCustomersFlow" doc:id="5d0fbd75-4694-461d-8abc-c243dda5827e" name="postCustomersFlow"/>
+        <flow-ref doc:name="CALL postCustomersFlow" doc:id="5d0fbd75-4694-461d-8abc-c243dda5827e" name="postCustomersFlow" />
     </flow>
     <flow name="post:\transactions\(id):application\json:banking-services-config">
         <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
@@ -450,6 +450,23 @@ output application/json
 ---
 {
   message: "Transaction added (not really, still UNIMPLEMENTED)"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="patch:\customers\(id):application\json:banking-services-config">
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core">
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Customer updated with new value"
 }]]></ee:set-payload>
             </ee:message>
         </ee:transform>

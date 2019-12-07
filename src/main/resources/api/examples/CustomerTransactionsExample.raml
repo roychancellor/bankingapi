@@ -1,0 +1,92 @@
+#%RAML 1.0 NamedExample
+value:
+  customer:
+    custId: 1
+    firstName: "Max"
+    lastName: "Mule"
+    phoneNumber: "1234567890"
+    emailAddress: "maxmule@mulesoft.com"
+    userName: "maxmule"
+    hashedPassword: "KzhyBhLJ7NKBtpWEF/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95O"
+    hashedSalt: "KzhyBhLJ7NKBtpWEF/HAQHB2693pC7ZGLVe64qzZ2cmCzKmta1uV9YE95OtSXJslp"
+  checking:
+    accountInfo:
+      accountNumber: "CHK123"
+      currentBalance: 12345.67
+      terms:
+        overdraftFee: 25.00
+        feeRequired: true
+    transactions:
+      transList:
+        -
+          transactionTimestamp: 1574436958094
+          accountNumber: "CHK123"
+          amount: 123.45
+          transactionType: "Withdrawal"
+        -
+          transactionTimestamp: 1574436958095
+          accountNumber: "CHK123"
+          amount: 234.56
+          transactionType: "Deposit"
+      lastTrans:
+          transactionTimestamp: 1574436958095
+          accountNumber: "CHK123"
+          amount: 234.56
+          transactionType: "Deposit"
+  savingAccount:
+    accountInfo:
+      accountNumber: "SAV123"
+      currentBalance: 3456.78
+      interestEarned: 23.45
+      terms:
+        minBalance: 100.00
+        interestRate: 0.04
+        serviceFee: 25.00
+        feeRequired: true
+    transactions:
+      transList:
+        -
+          transactionTimestamp: 1574436958094
+          accountNumber: "SAV123"
+          amount: 123.45
+          transactionType: "Withdrawal"
+        -
+          transactionTimestamp: 1574436958095
+          accountNumber: "SAV123"
+          amount: 234.56
+          transactionType: "Deposit"
+      lastTrans:
+          transactionTimestamp: 1574436958095
+          accountNumber: "SAV123"
+          amount: 234.56
+          transactionType: "Deposit"
+  loanAccount:
+    accountInfo:
+      accountNumber: "LOA123"
+      currentBalance: -1234.67
+      amountPaidThisMonth: 123.45
+      interestPaidThisMonth: 23.45
+      terms:
+        monthlyPaymentAmount: 123.45
+        monthlyInterestRate: 0.0083333
+        lateFee: 25.00
+        termYears: 5
+        creditLimit: 5000.00
+        feeRequired: true
+    transactions:
+      transList:
+        -
+          transactionTimestamp: 1574436958094
+          accountNumber: "LOA123"
+          amount: 123.45
+          transactionType: "Withdrawal"
+        -
+          transactionTimestamp: 1574436958095
+          accountNumber: "LOA123"
+          amount: 234.56
+          transactionType: "Payment"
+      lastTrans:
+          transactionTimestamp: 1574436958095
+          accountNumber: "LOA123"
+          amount: 234.56
+          transactionType: "Payment"
