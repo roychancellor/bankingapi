@@ -70,7 +70,7 @@
     	<dependency>
             <groupId>20456335-ad80-443f-bf0f-ce31f11b2174</groupId>
             <artifactId>banking-services</artifactId>
-            <version>1.0.8</version>
+            <version>1.0.9</version>
             <classifier>raml</classifier>
             <type>zip</type>
         </dependency>

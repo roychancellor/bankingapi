@@ -116,11 +116,13 @@ output application/json
 		<logger level="INFO" doc:name="Logger" doc:id="b45224b2-e3ad-475f-b13f-c37be61e4b43" message="#[payload]" />
     </flow>
 	<flow name="updateCustomerByIdFlow" doc:id="0bfd52ea-e7e1-44f1-9090-593f03a1450f" >
-		<ee:transform doc:name="Convert PATCH Body to Update Parameters (varUpdate)" doc:id="8a902634-3839-4d48-8445-2afa446687aa" >
-			<ee:message >
+		<set-variable value="#[attributes.uriParams.'id' as Number {format: &quot;#&quot;}]" doc:name="Set custId from URI Params" doc:id="f08fc11e-76bf-4f37-a3a0-88271d1f831f" variableName="custId"/>
+		<foreach doc:name="For Each" doc:id="55b73275-bfe2-4de0-8b39-638027b08071" >
+			<ee:transform doc:name="Convert PATCH Body to Update Parameters (varUpdate)" doc:id="8a902634-3839-4d48-8445-2afa446687aa">
+			<ee:message>
 			</ee:message>
-			<ee:variables >
-				<ee:set-variable variableName="varUpdate" ><![CDATA[%dw 2.0
+			<ee:variables>
+				<ee:set-variable variableName="varUpdate"><![CDATA[%dw 2.0
 output application/java
 ---
 //Makes the input parameters for the SQL UPDATE operation based on the PATCH body
@@ -131,31 +133,34 @@ output application/java
 		case "email" -> "email"
 		case "phone" -> "phone"
 	},
-	newValue: payload.value,
-	custId: attributes.uriParams.'id' as Number {format: "#"}
+	newValue: payload.value
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<set-variable value="#[output application/java
+			<set-variable value="#[output application/java
 ---
 &quot;UPDATE ${db.database}.${tables.customers} 
 SET $(vars.varUpdate.fieldName) = '$(vars.varUpdate.newValue)' 
-WHERE customerId = $(vars.varUpdate.custId)&quot;]" doc:name="Set updateCustomerSQL Statement" doc:id="381818fe-9978-4355-b2cd-d738927226ec" variableName="updateCustomerSQL"/>
-		<db:update doc:name="Update Customer Object by Id" doc:id="ecdafcbf-c952-416e-8035-86171324067b" config-ref="Banking_AWS_Database_Config">
-			<db:sql >#[vars.updateCustomerSQL]</db:sql>
+WHERE customerId = $(vars.custId)&quot;]" doc:name="Set updateCustomerSQL Statement" doc:id="381818fe-9978-4355-b2cd-d738927226ec" variableName="updateCustomerSQL" />
+			<db:update doc:name="Update Customer Object by Id" doc:id="ecdafcbf-c952-416e-8035-86171324067b" config-ref="Banking_AWS_Database_Config">
+			<db:sql>#[vars.updateCustomerSQL]</db:sql>
 		</db:update>
-		<ee:transform doc:name="Transform Message" doc:id="ca7805fc-2adf-418e-8f7c-1afca1dfde49" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+			<ee:transform doc:name="Transform Message" doc:id="ca7805fc-2adf-418e-8f7c-1afca1dfde49">
+			<ee:message>
+			</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="updateResponse" ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-	message: if (payload.affectedRows > 0) "Customer Id = " ++ vars.varUpdate.custId ++ " updated"
+	message: if (payload.affectedRows > 0) "Customer Id = " ++ vars.custId ++ " updated"
 		else "No customer with Id = " ++ vars.varUpdate.custId ++ " found",
-	update: if (payload.affectedRows > 0) vars.varUpdate.fieldName ++ " -> " ++ vars.varUpdate.newValue else "Nothing updated"
-}]]></ee:set-payload>
-			</ee:message>
+	update: if (payload.affectedRows > 0) vars.varUpdate.fieldName ++ " -> " ++ vars.varUpdate.newValue
+		else "Nothing updated"
+}]]></ee:set-variable>
+				</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="1f074673-c715-4913-b9ab-b342fda74302" />
+		</foreach>
+		<logger level="INFO" doc:name="Logger" doc:id="605f67fc-6dbc-4d61-b602-04a60cf26221" message="#[vars.updateResponse]"/>
 	</flow>
 </mule>
