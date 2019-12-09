@@ -35,7 +35,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 	<sub-flow name="setAccountNumberSubflow" doc:id="56ab9b39-e1f4-413d-a4ab-12c203595642">
 		<set-variable value='#[%dw 2.0
 output application/java
-var timeMillis = ((now() as Number {unit: "milliseconds"})/1000000) as String
+var timeMillis = ((now() as Number {unit: "milliseconds"})/10) as String {format: "#.#"}
 import * from dw::core::Strings
 ---
 substringBefore(vars.acctPrefix ++ timeMillis, ".")]' doc:name="Set accountNumber" doc:id="d7038245-abde-4223-b0c4-01d2f883443f" variableName="accountNumber" />

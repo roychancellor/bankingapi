@@ -131,20 +131,31 @@ output application/java
 		case "email" -> "email"
 		case "phone" -> "phone"
 	},
-	newValue: payload.value
+	newValue: payload.value,
+	custId: attributes.uriParams.'id' as Number {format: "#"}
 }]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
+		<set-variable value="#[output application/java
+---
+&quot;UPDATE ${db.database}.${tables.customers} 
+SET $(vars.varUpdate.fieldName) = '$(vars.varUpdate.newValue)' 
+WHERE customerId = $(vars.varUpdate.custId)&quot;]" doc:name="Set updateCustomerSQL Statement" doc:id="381818fe-9978-4355-b2cd-d738927226ec" variableName="updateCustomerSQL"/>
 		<db:update doc:name="Update Customer Object by Id" doc:id="ecdafcbf-c952-416e-8035-86171324067b" config-ref="Banking_AWS_Database_Config">
-			<db:sql >UPDATE ${db.database}.${tables.customers}
-SET :fieldName = :newValue
-WHERE customerId = :custId</db:sql>
-			<db:input-parameters ><![CDATA[#[{
-	fieldName: vars.varUpdate.fieldName,
-	newValue: vars.varUpdate.newValue,
-	custId: attributes.uriParams.'id'
-}]]]></db:input-parameters>
+			<db:sql >#[vars.updateCustomerSQL]</db:sql>
 		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="ca7805fc-2adf-418e-8f7c-1afca1dfde49" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: if (payload.affectedRows > 0) "Customer Id = " ++ vars.varUpdate.custId ++ " updated"
+		else "No customer with Id = " ++ vars.varUpdate.custId ++ " found",
+	update: if (payload.affectedRows > 0) vars.varUpdate.fieldName ++ " -> " ++ vars.varUpdate.newValue else "Nothing updated"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="1f074673-c715-4913-b9ab-b342fda74302" />
 	</flow>
 </mule>
