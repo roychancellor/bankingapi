@@ -3,9 +3,13 @@ type: object
 description: Data type for updating (PATCHing) an existing customer
 properties:
   operation:
+    required: true
     type: string
     enum: [replace]
   path:
+    required: true
     type: string
     enum: [firstname, lastname, email, phone]
-  value: string
+  value:
+    type: string
+    required: true
