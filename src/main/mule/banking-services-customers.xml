@@ -115,4 +115,36 @@ output application/json
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="b45224b2-e3ad-475f-b13f-c37be61e4b43" message="#[payload]" />
     </flow>
+	<flow name="updateCustomerByIdFlow" doc:id="0bfd52ea-e7e1-44f1-9090-593f03a1450f" >
+		<ee:transform doc:name="Convert PATCH Body to Update Parameters (varUpdate)" doc:id="8a902634-3839-4d48-8445-2afa446687aa" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="varUpdate" ><![CDATA[%dw 2.0
+output application/java
+---
+//Makes the input parameters for the SQL UPDATE operation based on the PATCH body
+{
+	fieldName: payload.path match {
+		case "firstname" -> "firstName"
+		case "lastname" -> "lastName"
+		case "email" -> "email"
+		case "phone" -> "phone"
+	},
+	newValue: payload.value
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<db:update doc:name="Update Customer Object by Id" doc:id="ecdafcbf-c952-416e-8035-86171324067b" config-ref="Banking_AWS_Database_Config">
+			<db:sql >UPDATE ${db.database}.${tables.customers}
+SET :fieldName = :newValue
+WHERE customerId = :custId</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	fieldName: vars.varUpdate.fieldName,
+	newValue: vars.varUpdate.newValue,
+	custId: attributes.uriParams.'id'
+}]]]></db:input-parameters>
+		</db:update>
+		<logger level="INFO" doc:name="Logger" doc:id="1f074673-c715-4913-b9ab-b342fda74302" />
+	</flow>
 </mule>
