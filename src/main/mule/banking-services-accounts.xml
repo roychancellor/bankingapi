@@ -27,7 +27,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 		<flow-ref doc:name="CALL openNewAccountSubflow" doc:id="ff863ad6-e342-44a5-8850-31ee69434fa8" name="openNewAccountSubflow" />
 	</sub-flow>
 	<sub-flow name="openNewAccountSubflow" doc:id="e30fa834-2eda-4805-ba2c-0ed024b5bf0d">
-		<set-variable value='"Opening balance"' doc:name="Set transDescription" doc:id="1ed42faf-8e00-4bbc-9b1b-21fa0f7a94e7" variableName="transDescription" />
+		<set-variable value='Opening balance' doc:name="Set transDescription" doc:id="1ed42faf-8e00-4bbc-9b1b-21fa0f7a94e7" variableName="transDescription" />
 		<flow-ref doc:name="CALL setAccountNumberSubflow" doc:id="b120e9c8-dc0c-4130-bd01-ad62be396c82" name="setAccountNumberSubflow" />
 		<flow-ref doc:name="CALL createCustomerAccountSubflow" doc:id="bffaefa9-3516-4e6b-bcdd-2f4b8023ab56" name="createCustomerAccount" />
 		<flow-ref doc:name="CALL insertTransactionSubflow" doc:id="8b3fc075-194b-4d35-ab1e-cefa4415227d" name="insertTransactionSubflow" />
