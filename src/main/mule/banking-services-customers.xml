@@ -24,7 +24,7 @@ payload[0].customerId]]></ee:set-variable>
         <logger level="INFO" doc:name="Logger" doc:id="f3b7361d-0700-493b-9b71-06455caa568c" />
     </sub-flow>
 	<flow name="getCustomerByIdFlow" doc:id="2320451f-6c64-4f79-8663-0e72cac8c6ab">
-        <db:select doc:name="Select Customer By ID" doc:id="059e5eb6-02d3-496b-a56e-decbf5727aed" config-ref="Banking_AWS_Database_Config">
+		<db:select doc:name="Select Customer By ID" doc:id="059e5eb6-02d3-496b-a56e-decbf5727aed" config-ref="Banking_AWS_Database_Config">
             <db:sql>SELECT ${db.database}.${tables.customers}.customerId, lastName, firstName, email, phone, userName, passwordHash, passwordSalt,
 checkingNumber, checkingBalance, savingNumber, savingBalance, loanNumber, loanBalance
 FROM ${tables.customers}, ${tables.credentials}, ${tables.accounts}
@@ -33,7 +33,8 @@ AND ${db.database}.${tables.credentials}.customerId = :custId
 AND ${db.database}.${tables.accounts}.customerId = :custId</db:sql>
             <db:input-parameters><![CDATA[#[{'custId' : vars.custId default attributes.uriParams.id}]]]></db:input-parameters>
         </db:select>
-        <ee:transform doc:name="Convert to Customer Dashboard Object" doc:id="ef9c9b0a-b670-4b47-ac1b-55d6a719f8f6">
+        <set-variable value="#[if(payload[0] == null) 404 else 200]" doc:name="Set httpStatus" doc:id="94255784-d077-4f8b-9706-7d052de0f8a6" variableName="httpStatus" />
+		<ee:transform doc:name="Convert to Customer Dashboard Object" doc:id="ef9c9b0a-b670-4b47-ac1b-55d6a719f8f6">
             <ee:message>
                 <ee:set-payload><![CDATA[%dw 2.0
 output application/json
@@ -63,10 +64,10 @@ if(pay != null) {
 		currentBalance: pay.loanBalance default 0
 	}
 }
-else {customer: "No customer found"}]]></ee:set-payload>
+else {customer: "No customer found with that ID or username"}]]></ee:set-payload>
             </ee:message>
         </ee:transform>
-        <logger level="INFO" doc:name="Logger" doc:id="c788655a-80c5-4b76-b095-7103a31f3120" />
+		<logger level="INFO" doc:name="Logger" doc:id="c788655a-80c5-4b76-b095-7103a31f3120" />
     </flow>
 	<flow name="postCustomersFlow" doc:id="4923b7f1-dcb8-4284-9396-afae7baf665d">
 		<foreach doc:name="For Each Customer in Request Body" doc:id="2927956b-6270-4542-94e2-b84f2d0e83bb" >
@@ -126,6 +127,7 @@ output application/json
 	
 ]]" doc:name="Initialize updateResponse ArrayList" doc:id="90dd64b5-a861-4855-9ac6-524608f6f2e9" variableName="updateResponse" />
 		<flow-ref doc:name="CALL updateCustomerRecordsSubflow" doc:id="c445109c-b30d-4776-b1f2-1787d3f2c5aa" name="patchCustomerRecordsSubflow" />
+		<set-variable value="#[if(payload == null) 404 else 200]" doc:name="Set httpStatus" doc:id="f368491d-1f3a-4c54-8f59-03b42d0d2530" variableName="httpStatus" />
 		<ee:transform doc:name="Set Payload to updateResponse" doc:id="057381ba-a097-4b5c-a800-d167fc984d57">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
