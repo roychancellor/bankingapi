@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="deleteTransAcctsCredsSubflow" doc:id="1f906b97-de5b-46ed-bfd7-e08846c45cbf" >
+		<db:delete doc:name="Delete customer transactions" doc:id="fc006856-c1af-4f59-b568-1c2dddfc6bbf" config-ref="Banking_AWS_Database_Config">
+			<db:sql>DELETE FROM ${db.database}.${tables.transactions}
+WHERE customerId = :custId</db:sql>
+			<db:input-parameters><![CDATA[#[custId: vars.customerId]]]></db:input-parameters>
+		</db:delete>
+		<db:delete doc:name="Delete customer accounts" doc:id="b3adcb10-98e7-4a96-b598-82fa5923eb13" config-ref="Banking_AWS_Database_Config">
+			<db:sql>DELETE FROM ${db.database}.${tables.accounts}
+WHERE customerId = :custId</db:sql>
+			<db:input-parameters><![CDATA[#[custId: vars.customerId]]]></db:input-parameters>
+		</db:delete>
+		<db:delete doc:name="Delete customer credentials" doc:id="edcec832-1211-4a28-b80c-85a4489bf727" config-ref="Banking_AWS_Database_Config">
+			<db:sql>DELETE FROM ${db.database}.${tables.credentials}
+WHERE customerId = :custId</db:sql>
+			<db:input-parameters><![CDATA[#[custId: vars.customerId]]]></db:input-parameters>
+		</db:delete>
+	</sub-flow>
 	<flow name="getCustomerByUsernameFlow" doc:id="50963597-3d51-48fe-8770-d5a7ef7748fe">
         <flow-ref doc:name="CALL getCustomerIdFromUsernameFlow" doc:id="45f24a3b-0a7c-4db9-a44b-7c4a8abfc001" name="getCustomerIdFromUsernameSubflow" />
         <flow-ref doc:name="CALL getCustomerByIdFlow" doc:id="a553b69b-283b-4d07-ae8a-9474b55cb744" name="getCustomerByIdFlow" />
@@ -39,7 +56,7 @@ AND ${db.database}.${tables.accounts}.customerId = :custId</db:sql>
 output application/json
 var pay = payload[0]
 ---
-{
+if(pay != null) {
 	customer: {
 		custId: pay.customerId,
 		firstName: pay.firstName,
@@ -62,7 +79,8 @@ var pay = payload[0]
 		accountNumber: pay.loanNumber default "",
 		currentBalance: pay.loanBalance default 0
 	}
-}]]></ee:set-payload>
+}
+else {customer: "No customer found"}]]></ee:set-payload>
             </ee:message>
         </ee:transform>
         <logger level="INFO" doc:name="Logger" doc:id="c788655a-80c5-4b76-b095-7103a31f3120" />
@@ -106,16 +124,17 @@ VALUES
 output application/json
 ---
 {
-	message: "Success: " ++ sizeOf(payload) ++ " customer(s) inserted:",
+	message: "Success: customer(s) inserted:",
+	numRecords: sizeOf(payload),
 	customers: {(payload map {
-		($$): $.firstName ++ " " ++ $.lastName
+		($$ + 1): $.firstName ++ " " ++ $.lastName
 	})}
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="b45224b2-e3ad-475f-b13f-c37be61e4b43" message="#[payload]" />
     </flow>
-	<flow name="updateCustomerByIdFlow" doc:id="0bfd52ea-e7e1-44f1-9090-593f03a1450f">
+	<flow name="patchCustomerByIdFlow" doc:id="0bfd52ea-e7e1-44f1-9090-593f03a1450f">
 		<set-variable value="#[attributes.uriParams.'id' as Number {format: &quot;#&quot;}]" doc:name="Set custId from URI Params" doc:id="f08fc11e-76bf-4f37-a3a0-88271d1f831f" variableName="custId" />
 		<set-variable value="#[%dw 2.0
 output application/json
@@ -132,7 +151,7 @@ output application/json
 vars.updateResponse]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="605f67fc-6dbc-4d61-b602-04a60cf26221" message="#[vars.updateResponse]" />
+		<logger level="INFO" doc:name="Logger" doc:id="605f67fc-6dbc-4d61-b602-04a60cf26221" message='#[vars.updateResponse]' />
 	</flow>
 	<sub-flow name="updateCustomerRecordsSubflow" doc:id="c17dbe6c-a93b-45af-919c-678de5316594">
 		<foreach doc:name="For Each" doc:id="55b73275-bfe2-4de0-8b39-638027b08071">
@@ -150,6 +169,7 @@ output application/java
 		case "lastname" -> "lastName"
 		case "email" -> "email"
 		case "phone" -> "phone"
+		else -> ""
 	},
 	newValue: payload.value
 }]]></ee:set-variable>
@@ -159,7 +179,7 @@ output application/java
 ---
 &quot;UPDATE ${db.database}.${tables.customers} 
 SET $(vars.varUpdate.fieldName) = '$(vars.varUpdate.newValue)' 
-WHERE customerId = $(vars.custId)&quot;]" doc:name="Set updateCustomerSQL Statement" doc:id="381818fe-9978-4355-b2cd-d738927226ec" variableName="updateCustomerSQL" />
+WHERE customerId = $(vars.custId)&quot;]" doc:name="Set SQL Statement (updateCustomerSQL)" doc:id="381818fe-9978-4355-b2cd-d738927226ec" variableName="updateCustomerSQL" />
 			<db:update doc:name="Update Customer Object by Id" doc:id="ecdafcbf-c952-416e-8035-86171324067b" config-ref="Banking_AWS_Database_Config">
 			<db:sql>#[vars.updateCustomerSQL]</db:sql>
 		</db:update>
@@ -171,8 +191,8 @@ WHERE customerId = $(vars.custId)&quot;]" doc:name="Set updateCustomerSQL Statem
 output application/json
 ---
 {
-	message: if (payload.affectedRows > 0) "Customer Id = " ++ vars.custId ++ " updated"
-		else "No customer with Id = " ++ vars.custId ++ " found",
+	message: if (payload.affectedRows > 0) "Customer Id " ++ vars.custId ++ " updated"
+		else "No customer with Id " ++ vars.custId ++ " found",
 	update: if (payload.affectedRows > 0) vars.varUpdate.fieldName ++ " -> " ++ vars.varUpdate.newValue
 		else "Nothing updated"
 }]]></ee:set-variable>
@@ -181,7 +201,29 @@ output application/json
 			<set-variable value="#[%dw 2.0
 output application/java
 ---
-vars.updateResponse &lt;&lt; vars.response]" doc:name="Add response JSON object to updateResponse" doc:id="ecccc369-e0be-46f5-b3e8-84f5c6dbae39" variableName="updateResponse" />
+vars.updateResponse &lt;&lt; vars.response]" doc:name="Add response JSON object to updateResponse ArrayList" doc:id="ecccc369-e0be-46f5-b3e8-84f5c6dbae39" variableName="updateResponse" />
 		</foreach>
 	</sub-flow>
+	<flow name="deleteCustomerByIdFlow" doc:id="33a33dcc-68bb-43ae-b19e-92cd7c0c2880" >
+		<set-variable value="#[attributes.uriParams.'id' as Number {format: &quot;#&quot;}]" doc:name="Set customerId" doc:id="a45897d1-777a-4f59-81b2-bed88f6e0295" variableName="customerId"/>
+		<db:delete doc:name="Delete from customers (cascades)" doc:id="7be8343b-ecc6-4847-bd5d-9bd42d5026fe" config-ref="Banking_AWS_Database_Config" >
+			<db:sql >DELETE FROM ${db.database}.${tables.customers}
+WHERE customerId = :custId</db:sql>
+			<db:input-parameters ><![CDATA[#[custId: vars.customerId]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Set Payload to Success or Fail Message" doc:id="e0ff7f1c-f2b7-46b2-811c-f8c61e808d12" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (payload > 0) {
+	message: "Success, customer with ID " ++ vars.customerId ++ " deleted"
+}
+else {
+	message: "No customer with ID " ++ vars.customerId ++ " was found. Nothing deleted."
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="0b57719d-4e39-4aa3-a286-cb53507d8e2e" />
+	</flow>
 </mule>

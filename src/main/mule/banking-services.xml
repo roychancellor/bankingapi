@@ -27,7 +27,7 @@ output application/json
                 </ee:transform>
             </on-error-propagate>
             <on-error-propagate type="APIKIT:NOT_FOUND">
-                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="5864dffd-8d60-4d07-9bc7-250f625adb16">
                     <ee:message>
                         <ee:set-payload><![CDATA[%dw 2.0
 output application/json
@@ -35,7 +35,7 @@ output application/json
 {message: "Resource not found"}]]></ee:set-payload>
                     </ee:message>
                     <ee:variables>
-                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
                     </ee:variables>
                 </ee:transform>
             </on-error-propagate>
@@ -121,24 +121,10 @@ output application/json
         </error-handler>
     </flow>
     <flow name="delete:\customers\(id):banking-services-config">
-        <ee:transform>
-            <ee:variables>
-                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  message: "Customer deleted (not really, still UNIMPLEMENTED)"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+		<flow-ref doc:name="CALL deleteCustomerByIdFlow" doc:id="7d303cf4-edc0-43bf-9eee-c8380cd65d0d" name="deleteCustomerByIdFlow"/>
     </flow>
     <flow name="patch:\customers\(id):application\json:banking-services-config">
-        <flow-ref doc:name="CALL updateCustomerByIdFlow" doc:id="7361f022-28c9-47ab-9080-8acc3085daa6" name="updateCustomerByIdFlow" />
+        <flow-ref doc:name="CALL updateCustomerByIdFlow" doc:id="7361f022-28c9-47ab-9080-8acc3085daa6" name="patchCustomerByIdFlow" />
     </flow>
     <flow name="get:\customers:banking-services-config">
         <flow-ref doc:name="CALL getCustomerByUsername Flow" doc:id="547fdd6b-235f-4dbc-b5b7-ab4f5f0493a3" name="getCustomerByUsernameFlow" />
