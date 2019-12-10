@@ -115,9 +115,27 @@ output application/json
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="b45224b2-e3ad-475f-b13f-c37be61e4b43" message="#[payload]" />
     </flow>
-	<flow name="updateCustomerByIdFlow" doc:id="0bfd52ea-e7e1-44f1-9090-593f03a1450f" >
-		<set-variable value="#[attributes.uriParams.'id' as Number {format: &quot;#&quot;}]" doc:name="Set custId from URI Params" doc:id="f08fc11e-76bf-4f37-a3a0-88271d1f831f" variableName="custId"/>
-		<foreach doc:name="For Each" doc:id="55b73275-bfe2-4de0-8b39-638027b08071" >
+	<flow name="updateCustomerByIdFlow" doc:id="0bfd52ea-e7e1-44f1-9090-593f03a1450f">
+		<set-variable value="#[attributes.uriParams.'id' as Number {format: &quot;#&quot;}]" doc:name="Set custId from URI Params" doc:id="f08fc11e-76bf-4f37-a3a0-88271d1f831f" variableName="custId" />
+		<set-variable value="#[%dw 2.0
+output application/json
+---
+[
+	
+]]" doc:name="Initialize updateResponse ArrayList" doc:id="90dd64b5-a861-4855-9ac6-524608f6f2e9" variableName="updateResponse" />
+		<flow-ref doc:name="CALL updateCustomerRecordsSubflow" doc:id="c445109c-b30d-4776-b1f2-1787d3f2c5aa" name="updateCustomerRecordsSubflow" />
+		<ee:transform doc:name="Set Payload to updateResponse" doc:id="057381ba-a097-4b5c-a800-d167fc984d57">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.updateResponse]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="605f67fc-6dbc-4d61-b602-04a60cf26221" message="#[vars.updateResponse]" />
+	</flow>
+	<sub-flow name="updateCustomerRecordsSubflow" doc:id="c17dbe6c-a93b-45af-919c-678de5316594">
+		<foreach doc:name="For Each" doc:id="55b73275-bfe2-4de0-8b39-638027b08071">
 			<ee:transform doc:name="Convert PATCH Body to Update Parameters (varUpdate)" doc:id="8a902634-3839-4d48-8445-2afa446687aa">
 			<ee:message>
 			</ee:message>
@@ -145,22 +163,25 @@ WHERE customerId = $(vars.custId)&quot;]" doc:name="Set updateCustomerSQL Statem
 			<db:update doc:name="Update Customer Object by Id" doc:id="ecdafcbf-c952-416e-8035-86171324067b" config-ref="Banking_AWS_Database_Config">
 			<db:sql>#[vars.updateCustomerSQL]</db:sql>
 		</db:update>
-			<ee:transform doc:name="Transform Message" doc:id="ca7805fc-2adf-418e-8f7c-1afca1dfde49">
+			<ee:transform doc:name="Set Update Message for Iteration" doc:id="ca7805fc-2adf-418e-8f7c-1afca1dfde49">
 			<ee:message>
 			</ee:message>
-				<ee:variables >
-					<ee:set-variable variableName="updateResponse" ><![CDATA[%dw 2.0
+				<ee:variables>
+					<ee:set-variable variableName="response"><![CDATA[%dw 2.0
 output application/json
 ---
 {
 	message: if (payload.affectedRows > 0) "Customer Id = " ++ vars.custId ++ " updated"
-		else "No customer with Id = " ++ vars.varUpdate.custId ++ " found",
+		else "No customer with Id = " ++ vars.custId ++ " found",
 	update: if (payload.affectedRows > 0) vars.varUpdate.fieldName ++ " -> " ++ vars.varUpdate.newValue
 		else "Nothing updated"
 }]]></ee:set-variable>
 				</ee:variables>
 		</ee:transform>
+			<set-variable value="#[%dw 2.0
+output application/java
+---
+vars.updateResponse &lt;&lt; vars.response]" doc:name="Add response JSON object to updateResponse" doc:id="ecccc369-e0be-46f5-b3e8-84f5c6dbae39" variableName="updateResponse" />
 		</foreach>
-		<logger level="INFO" doc:name="Logger" doc:id="605f67fc-6dbc-4d61-b602-04a60cf26221" message="#[vars.updateResponse]"/>
-	</flow>
+	</sub-flow>
 </mule>
