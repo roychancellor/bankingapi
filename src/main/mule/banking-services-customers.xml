@@ -1,22 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<sub-flow name="deleteTransAcctsCredsSubflow" doc:id="1f906b97-de5b-46ed-bfd7-e08846c45cbf" >
-		<db:delete doc:name="Delete customer transactions" doc:id="fc006856-c1af-4f59-b568-1c2dddfc6bbf" config-ref="Banking_AWS_Database_Config">
-			<db:sql>DELETE FROM ${db.database}.${tables.transactions}
-WHERE customerId = :custId</db:sql>
-			<db:input-parameters><![CDATA[#[custId: vars.customerId]]]></db:input-parameters>
-		</db:delete>
-		<db:delete doc:name="Delete customer accounts" doc:id="b3adcb10-98e7-4a96-b598-82fa5923eb13" config-ref="Banking_AWS_Database_Config">
-			<db:sql>DELETE FROM ${db.database}.${tables.accounts}
-WHERE customerId = :custId</db:sql>
-			<db:input-parameters><![CDATA[#[custId: vars.customerId]]]></db:input-parameters>
-		</db:delete>
-		<db:delete doc:name="Delete customer credentials" doc:id="edcec832-1211-4a28-b80c-85a4489bf727" config-ref="Banking_AWS_Database_Config">
-			<db:sql>DELETE FROM ${db.database}.${tables.credentials}
-WHERE customerId = :custId</db:sql>
-			<db:input-parameters><![CDATA[#[custId: vars.customerId]]]></db:input-parameters>
-		</db:delete>
-	</sub-flow>
 	<flow name="getCustomerByUsernameFlow" doc:id="50963597-3d51-48fe-8770-d5a7ef7748fe">
         <flow-ref doc:name="CALL getCustomerIdFromUsernameFlow" doc:id="45f24a3b-0a7c-4db9-a44b-7c4a8abfc001" name="getCustomerIdFromUsernameSubflow" />
         <flow-ref doc:name="CALL getCustomerByIdFlow" doc:id="a553b69b-283b-4d07-ae8a-9474b55cb744" name="getCustomerByIdFlow" />
@@ -142,7 +125,7 @@ output application/json
 [
 	
 ]]" doc:name="Initialize updateResponse ArrayList" doc:id="90dd64b5-a861-4855-9ac6-524608f6f2e9" variableName="updateResponse" />
-		<flow-ref doc:name="CALL updateCustomerRecordsSubflow" doc:id="c445109c-b30d-4776-b1f2-1787d3f2c5aa" name="updateCustomerRecordsSubflow" />
+		<flow-ref doc:name="CALL updateCustomerRecordsSubflow" doc:id="c445109c-b30d-4776-b1f2-1787d3f2c5aa" name="patchCustomerRecordsSubflow" />
 		<ee:transform doc:name="Set Payload to updateResponse" doc:id="057381ba-a097-4b5c-a800-d167fc984d57">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -153,7 +136,7 @@ vars.updateResponse]]></ee:set-payload>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="605f67fc-6dbc-4d61-b602-04a60cf26221" message='#[vars.updateResponse]' />
 	</flow>
-	<sub-flow name="updateCustomerRecordsSubflow" doc:id="c17dbe6c-a93b-45af-919c-678de5316594">
+	<sub-flow name="patchCustomerRecordsSubflow" doc:id="c17dbe6c-a93b-45af-919c-678de5316594">
 		<foreach doc:name="For Each" doc:id="55b73275-bfe2-4de0-8b39-638027b08071">
 			<ee:transform doc:name="Convert PATCH Body to Update Parameters (varUpdate)" doc:id="8a902634-3839-4d48-8445-2afa446687aa">
 			<ee:message>
